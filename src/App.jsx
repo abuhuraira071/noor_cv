@@ -136,12 +136,13 @@ function Typewriter({ phrases = [], typingSpeed = 45, deletingSpeed = 28, pause 
 
 function SplitReveal({ text, className = "", delay = 0, isLight }) {
   const letters = Array.from(text);
+  const isGradient = className.includes("bg-gradient");
   return (
     <motion.span
       initial="hidden"
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.03, delayChildren: delay } } }}
-      className={className}
+      className={isGradient ? "inline-block" : className}
       aria-label={text}
     >
       {letters.map((ch, i) => (
@@ -151,7 +152,7 @@ function SplitReveal({ text, className = "", delay = 0, isLight }) {
             hidden: { y: 18, opacity: 0, rotateX: -18 },
             visible: { y: 0, opacity: 1, rotateX: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
           }}
-          className="inline-block will-change-transform"
+          className={`inline-block will-change-transform ${isGradient ? className : ""}`}
           style={{ display: ch === " " ? "inline" : "inline-block" }}
         >
           {ch === " " ? "\u00A0" : ch}
@@ -316,9 +317,7 @@ function Hero() {
             <div className={`mt-5 sm:mt-6 font-display text-[32px] xs:text-[36px] sm:text-[48px] md:text-[56px] lg:text-[62px] font-semibold leading-[0.9] tracking-[-0.04em] ${isLight ? "text-[#1A1E1C]" : "text-[#E8E6E1]"}`}>
               <SplitReveal text="MD" className="inline-block" delay={0.12} isLight={isLight} />
               {" "}
-              <span className="bg-gradient-to-r from-[#8B5E34] via-[#C2A27A] to-[#5C4033] bg-clip-text text-transparent">
-                <SplitReveal text="RASHEDUZZAMAN" className="inline-block bg-gradient-to-r from-[#8B5E34] via-[#C2A27A] to-[#5C4033] bg-clip-text text-transparent" delay={0.22} isLight={isLight} />
-              </span>
+              <SplitReveal text="RASHEDUZZAMAN" className="inline-block bg-gradient-to-r from-[#8B5E34] via-[#C2A27A] to-[#5C4033] bg-clip-text text-transparent" delay={0.22} isLight={isLight} />
               <br />
               <SplitReveal text="NOOR" className="inline-block" delay={0.42} isLight={isLight} />
             </div>
