@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-display: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Theme variables */
+html[data-theme="dark"] body {
+  background: #020617;
+  color: #e2e8f0;
+}
+html[data-theme="light"] body {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+/* custom scrollbar - adaptive */
+html[data-theme="dark"] ::-webkit-scrollbar-track { background: #0f172a; }
+html[data-theme="light"] ::-webkit-scrollbar-track { background: #e2e8f0; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+html[data-theme="light"] ::-webkit-scrollbar-thumb { background: #94a3b8; }
+::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+
+::selection { background: rgba(6,182,214,0.3); }
+html[data-theme="light"] ::selection { background: rgba(6,182,214,0.2); }
+
+/* focus visible */
+:focus-visible {
+  outline: 2px solid #06b6d4;
+  outline-offset: 2px;
+}
