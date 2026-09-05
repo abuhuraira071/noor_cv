@@ -91,6 +91,76 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.07 } }
 };
 
+// ---------- Typewriter (typo) effect with Framer Motion ----------
+function Typewriter({ phrases = [], typingSpeed = 45, deletingSpeed = 28, pause = 1600, className = "", mono = false }) {
+  const [idx, setIdx] = useState(0);
+  const [subIdx, setSubIdx] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const [blink, setBlink] = useState(true);
+
+  useEffect(() => {
+    const id = setInterval(() => setBlink(b => !b), 530);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    if (phrases.length === 0) return;
+    const current = phrases[idx % phrases.length];
+    let timeout;
+    if (!deleting && subIdx === current.length) {
+      timeout = setTimeout(() => setDeleting(true), pause);
+    } else if (deleting && subIdx === 0) {
+      setDeleting(false);
+      setIdx(v => (v + 1) % phrases.length);
+    } else {
+      timeout = setTimeout(() => {
+        setSubIdx(v => v + (deleting ? -1 : 1));
+      }, deleting ? deletingSpeed : typingSpeed);
+    }
+    return () => clearTimeout(timeout);
+  }, [subIdx, deleting, idx, phrases, typingSpeed, deletingSpeed, pause]);
+
+  const text = (phrases[idx % phrases.length] || "").substring(0, subIdx);
+  return (
+    <span className={`inline-flex items-center ${className}`}>
+      <span className={mono ? "font-mono tracking-[-0.02em]" : ""}>{text}</span>
+      <motion.span
+        animate={{ opacity: blink ? 1 : 0 }}
+        transition={{ duration: 0.1 }}
+        className="ml-[2px] inline-block h-[1.15em] w-[2px] -mb-1 bg-current"
+        style={{ backgroundColor: "currentColor" }}
+      />
+    </span>
+  );
+}
+
+function SplitReveal({ text, className = "", delay = 0, isLight }) {
+  const letters = Array.from(text);
+  return (
+    <motion.span
+      initial="hidden"
+      animate="visible"
+      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.03, delayChildren: delay } } }}
+      className={className}
+      aria-label={text}
+    >
+      {letters.map((ch, i) => (
+        <motion.span
+          key={i}
+          variants={{
+            hidden: { y: 18, opacity: 0, rotateX: -18 },
+            visible: { y: 0, opacity: 1, rotateX: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
+          }}
+          className="inline-block will-change-transform"
+          style={{ display: ch === " " ? "inline" : "inline-block" }}
+        >
+          {ch === " " ? "\u00A0" : ch}
+        </motion.span>
+      ))}
+    </motion.span>
+  );
+}
+
 function Section({ id, kicker, title, desc, children }) {
   const { theme } = useTheme();
   const isLight = theme === "light";
@@ -242,14 +312,50 @@ function Hero() {
               <span className="leading-tight">Open to Research Collaborations • BECITHCON 2026 Author</span>
             </motion.div>
 
-            <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className={`mt-5 sm:mt-6 font-display text-[32px] xs:text-[36px] sm:text-[48px] md:text-[56px] lg:text-[62px] font-semibold leading-[0.9] tracking-[-0.04em] ${isLight ? "text-[#1A1E1C]" : "text-[#E8E6E1]"}`}>
-              MD <span className="bg-gradient-to-r from-[#8B5E34] via-[#C2A27A] to-[#5C4033] bg-clip-text text-transparent">RASHEDUZZAMAN</span> <br /> NOOR
-            </motion.h1>
+            {/* Name with letter-by-letter reveal */}
+            <div className={`mt-5 sm:mt-6 font-display text-[32px] xs:text-[36px] sm:text-[48px] md:text-[56px] lg:text-[62px] font-semibold leading-[0.9] tracking-[-0.04em] ${isLight ? "text-[#1A1E1C]" : "text-[#E8E6E1]"}`}>
+              <SplitReveal text="MD" className="inline-block" delay={0.12} isLight={isLight} />
+              {" "}
+              <span className="bg-gradient-to-r from-[#8B5E34] via-[#C2A27A] to-[#5C4033] bg-clip-text text-transparent">
+                <SplitReveal text="RASHEDUZZAMAN" className="inline-block bg-gradient-to-r from-[#8B5E34] via-[#C2A27A] to-[#5C4033] bg-clip-text text-transparent" delay={0.22} isLight={isLight} />
+              </span>
+              <br />
+              <SplitReveal text="NOOR" className="inline-block" delay={0.42} isLight={isLight} />
+            </div>
 
-            <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className={`mt-4 max-w-[620px] text-[14px] sm:text-[15px] md:text-[17px] leading-6 sm:leading-7 ${isLight ? "text-[#5A5A5A]" : "text-[#9AA0A6]"}`}>
+            <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.6 }} className={`mt-4 max-w-[620px] text-[14px] sm:text-[15px] md:text-[17px] leading-6 sm:leading-7 ${isLight ? "text-[#5A5A5A]" : "text-[#9AA0A6]"}`}>
               Biomedical signal processing • Deep learning for <span className={`font-medium ${isLight ? "text-[#1A1E1C]" : "text-[#E8E6E1]"}`}>ECG / EEG</span> • Embedded & Edge AI • Real-time patient monitoring systems
               <span className={isLight ? "text-[#8B7355]" : "text-[#6B6B6B]"}> — B.Sc. Electrical & Electronic Engineering, RUET</span>
             </motion.p>
+
+            {/* Typing / typo effect - cycles core specialties */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.75, duration: 0.6 }}
+              className={`mt-4 flex items-center gap-2 rounded-xl border px-3 sm:px-4 py-2.5 font-mono text-[12px] sm:text-[13px] backdrop-blur ${isLight ? "border-[#E8DDD0] bg-white shadow-sm" : "border-white/10 bg-white/[0.04]"}`}
+            >
+              <span className={`hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase shrink-0 ${isLight ? "text-[#8B7355]" : "text-[#9AA0A6]"}`}>
+                <span className={`h-2 w-2 rounded-full animate-pulse ${isLight ? "bg-[#8B5E34]" : "bg-[#D4B896]"}`} /> research.focus
+              </span>
+              <span className={`hidden sm:inline ${isLight ? "text-[#E8DDD0]" : "text-white/10"}`}>|</span>
+              <span className={isLight ? "text-[#8B5E34]" : "text-[#D4B896]"}>&gt;</span>
+              <Typewriter
+                mono
+                phrases={[
+                  "Biomedical signal processing",
+                  "Deep learning for ECG / EEG",
+                  "Embedded & Edge AI for medical devices",
+                  "Real-time patient monitoring systems",
+                  "Lightweight SHAP-explainable ECG classifiers",
+                  "Diffusion-based ECG synthesis on STM32"
+                ]}
+                typingSpeed={32}
+                deletingSpeed={18}
+                pause={1700}
+                className={isLight ? "text-[#1A1E1C]" : "text-[#E8E6E1]"}
+              />
+            </motion.div>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }} className="mt-5 sm:mt-6 flex flex-wrap gap-2 sm:gap-2.5">
               {[
@@ -670,7 +776,19 @@ function Contact() {
           <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full bg-[#8B5E34] px-3 py-1 text-xs font-bold tracking-[0.12em] text-white uppercase"><Sparkles size={12} /> Available for collaborations</div>
-              <h2 className={`mt-4 font-display text-[28px] sm:text-[30px] md:text-[40px] font-semibold leading-[0.95] tracking-[-0.03em] ${isLight ? "text-[#1A1E1C]" : "text-[#E8E6E1]"}`}>Let’s build <span className="bg-gradient-to-r from-[#8B5E34] to-[#5C4033] bg-clip-text text-transparent">life-saving</span> edge AI together.</h2>
+              <h2 className={`mt-4 font-display text-[28px] sm:text-[30px] md:text-[40px] font-semibold leading-[0.95] tracking-[-0.03em] ${isLight ? "text-[#1A1E1C]" : "text-[#E8E6E1]"}`}>
+                Let’s build{" "}
+                <span className="bg-gradient-to-r from-[#8B5E34] to-[#5C4033] bg-clip-text text-transparent">
+                  <Typewriter
+                    phrases={["life-saving", "trustworthy", "explainable", "real-time", "deployable"]}
+                    typingSpeed={70}
+                    deletingSpeed={36}
+                    pause={1500}
+                    className="bg-gradient-to-r from-[#8B5E34] to-[#5C4033] bg-clip-text text-transparent"
+                  />
+                </span>{" "}
+                edge AI together.
+              </h2>
               <p className={`mt-3 max-w-xl text-[13px] sm:text-[14px] leading-6 ${isLight ? "text-[#5A5A5A]" : "text-[#9AA0A6]"}`}>Interested in biomedical AI, inter-patient ECG classification, diffusion-based augmentation, or flashing models to STM32/ESP32? I’m open to research collaborations, internships and device R&D.</p>
               <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
                 <a href="mailto:rznoor07@gmail.com" className={`inline-flex items-center justify-center gap-2 rounded-full px-5 sm:px-6 py-3 text-sm font-semibold transition-colors ${isLight ? "bg-[#1A1E1C] text-[#FDFBF7] hover:bg-black" : "bg-[#E8E6E1] text-[#0F0F0E] hover:bg-white"}`}><Mail size={16} /> rznoor07@gmail.com</a>
